@@ -1,0 +1,130 @@
+#Preliminary Statistical Anaylses
+AirlineDiff_aov = aov(difference ~ AIRLINE, data = flightsClean)
+TukeyHSD(AirlineDiff_aov, ordered = FALSE)
+
+cor.test(flightsClean$difference, flightsClean$DEPARTURE_DELAY)
+
+cor.test(flightsClean$DEPARTURE_DELAY, flightsClean$ARRIVAL_DELAY)
+
+cor.test(flightsClean$DISTANCE, flightsClean$DEPARTURE_DELAY)
+
+#Regression Analyses
+lm_MonthDelay = lm(DEPARTURE_DELAY ~ factor(MONTH), data = flightsClean)
+summary(lm_MonthDelay)
+
+lm_WeekDelay = lm(DEPARTURE_DELAY ~ factor(DAY_OF_WEEK), data = flightsClean)
+summary(lm_WeekDelay)
+
+lm_airlineDelay = lm(DEPARTURE_DELAY ~ AIRLINE, data = flightsClean)
+summary(lm_airlineDelay)
+
+baseline <- lm(DEPARTURE_DELAY ~ AIRLINE + DAY_OF_WEEK + MONTH + TAXI_OUT, data=flightsClean)
+summary(baseline)
+
+
+#Prediction Anaylses
+logan2delay = flightsClean%>%
+  filter(ORIGIN_AIRPORT == "BOS")%>%
+  filter(MONTH == 2)
+
+#Set the seed
+set.seed(12345678)
+
+#Splitting the data
+randOrder = order(runif(nrow(logan2delay)))
+training.data = subset(logan2delay, randOrder < 0.9 * nrow(logan2delay))
+validation.data = subset(logan2delay, randOrder >= .9 * nrow(logan2delay))
+
+prediction.error = function(lm_model, validation.data){
+predicted.logan2delay = predict(lm_model, validation.data)
+error = sqrt(mean((predicted.logan2delay-validation.data$DEPARTURE_DELAY)^2))}
+
+#Prediction Models
+
+#REGRESSION 1 : baseline
+lm_1 = lm(DEPARTURE_DELAY ~ AIRLINE + factor(DAY_OF_WEEK) + TAXI_OUT, data=logan2delay)
+error_model1 = prediction.error(lm_1, validation.data)
+
+#REGRESSION 2 : location
+lm_2 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + factor(DESTINATION_AIRPORT) + factor(DAY_OF_WEEK), data=logan2delay)
+error_model2 = prediction.error(lm_2, validation.data)
+
+# Regression 3 : Interacting destination airport and day of week
+lm_3 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + AIR_TIME* factor(DAY_OF_WEEK), data=logan2delay)
+error_model3 = prediction.error(lm_3, validation.data)
+
+#REGRESSION 4 : Interacting Day of Week and Taxi out 
+lm_4 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) +  factor(DAY_OF_WEEK)*TAXI_OUT, data=logan2delay)
+error_model4 = prediction.error(lm_4, validation.data)
+
+#REGRESSION 5 : Interacting Airline and Taxi out 
+lm_5 = lm(DEPARTURE_DELAY ~ factor(AIRLINE)*TAXI_OUT +  factor(DAY_OF_WEEK), data=logan2delay)
+error_model5 = prediction.error(lm_5, validation.data)
+
+#REGRESSION 6 : 
+lm_6 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + factor(DAY_OF_WEEK) + TAXI_OUT + DISTANCE, data=logan2delay)
+error_model6 = prediction.error(lm_6, validation.data)
+
+#REGRESSION  7: 
+lm_7 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + factor(DAY_OF_WEEK) + TAXI_OUT + DISTANCE + SCHEDULED_TIME + ELAPSED_TIME, data = logan2delay)
+error_model7 = prediction.error(lm_7, validation.data)
+
+#REGRESSION 8 : 
+lm_8 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + SCHEDULED_TIME + ELAPSED_TIME, data = logan2delay)
+error_model8 = prediction.error(lm_8, validation.data)
+
+#REGRESSION  9: 
+lm_9 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + SCHEDULED_TIME+ELAPSED_TIME+AIR_TIME + TAXI_OUT, data = logan2delay)
+error_model9 = prediction.error(lm_9, validation.data)
+
+#REGRESSION 10 : 
+lm_10 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) * SCHEDULED_TIME + factor(DAY_OF_WEEK), data = logan2delay)
+error_model10 = prediction.error(lm_10, validation.data)
+
+#REGRESSION  11: 
+lm_11 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + DISTANCE + AIR_TIME, data = logan2delay)
+error_model11 = prediction.error(lm_11, validation.data)
+
+#REGRESSION 12 : 
+lm_12 = lm(DEPARTURE_DELAY ~ factor(AIRLINE) + factor(DAY_OF_WEEK) + TAXI_OUT + SCHEDULED_TIME + ELAPSED_TIME + AIR_TIME +DISTANCE, data = logan2delay)
+error_model12 = prediction.error(lm_12, validation.data)
+
+#REGRESSION  13: 
+lm_13 = lm(DEPARTURE_DELAY ~ factor(AIRLINE)  + DISTANCE + SCHEDULED_TIME + ELAPSED_TIME, data = logan2delay)
+error_model13 = prediction.error(lm_13, validation.data)
+
+#REGRESSION  14: 
+lm_14 = lm(DEPARTURE_DELAY ~ factor(AIRLINE)  + DISTANCE + factor(DAY_OF_WEEK) + AIR_TIME, data = logan2delay)
+error_model14 = prediction.error(lm_14, validation.data)
+
+#REGRESSION  15: 
+lm_15 = lm(DEPARTURE_DELAY ~ factor(DAY_OF_WEEK) * ELAPSED_TIME + DISTANCE, data = logan2delay)
+error_model15= prediction.error(lm_15, validation.data)
+
+
+summary(lm_2)
+
+test.data = logan2delay %>%
+group_by(DAY_OF_WEEK, AIRLINE, DESTINATION_AIRPORT) %>%
+summarize(DEPARTURE_DELAY = mean(DEPARTURE_DELAY))
+
+predicted.y = predict(lm_2, test.data, se.fit= TRUE)
+
+#standard error of predictions  
+names(predicted.y)
+
+head(predicted.y$fit)
+
+head(predicted.y$se.fit)
+
+#predict departure delay
+test.data$predicted.y=predicted.y$fit
+test.data$se.fit=predicted.y$se.fit
+
+#upper limit of confidence interval for each predicted y
+test.data$upper.limit = test.data$predicted.y +qnorm(0.975)*test.data$se.fit
+mean(test.data$upper.limit)
+
+#lower limit of confidence interval for each predicted y 
+test.data$lower.limit= test.data$predicted.y -qnorm(0.975)*test.data$se.fit
+mean(test.data$lower.limit)
