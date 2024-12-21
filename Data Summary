@@ -1,0 +1,43 @@
+flights$TAIL_NUMBER = NULL
+flights$FLIGHT_NUMBER = NULL
+
+dates = as.Date(with(flights, paste(flights$YEAR, flights$MONTH, flights$DAY,sep="-")), 
+                "%Y-%m-%d")
+flights <- flights %>%
+  mutate(dates = dates)
+flights$YEAR = NULL
+flights$DAY = NULL
+
+flights$MONTH = as.factor(flights$MONTH)
+flights$DAY_OF_WEEK = as.factor(flights$DAY_OF_WEEK)
+flights$AIRLINE = as.factor(flights$AIRLINE)
+
+flights$CANCELLED = as.logical(flights$CANCELLED)
+flights$DIVERTED = as.logical(flights$DIVERTED)
+
+cancelledORdiverted = (flights[flights$CANCELLED == TRUE | flights$DIVERTED == TRUE, 
+                               c("dates", "MONTH", "DAY_OF_WEEK", "AIRLINE", 
+                                 "ORIGIN_AIRPORT", "DESTINATION_AIRPORT", 
+                                 "SCHEDULED_DEPARTURE", "DEPARTURE_TIME", 
+                                 "DEPARTURE_DELAY","TAXI_OUT", "WHEELS_OFF", 
+                                 "SCHEDULED_TIME", "ELAPSED_TIME", "AIR_TIME", 
+                                 "DISTANCE", "WHEELS_ON",
+                                 "TAXI_IN", "SCHEDULED_ARRIVAL", "ARRIVAL_TIME", 
+                                 "ARRIVAL_DELAY", "DIVERTED", "CANCELLED", 
+                                 "CANCELLATION_REASON", 
+                                 "AIR_SYSTEM_DELAY", "SECURITY_DELAY", "AIRLINE_DELAY",
+                                 "LATE_AIRCRAFT_DELAY", "WEATHER_DELAY")])
+
+flightsClean = (flights[flights$CANCELLED == FALSE & flights$DIVERTED ==FALSE, 
+                        c("dates", "MONTH", "DAY_OF_WEEK", "AIRLINE", 
+                          "ORIGIN_AIRPORT", "DESTINATION_AIRPORT", "SCHEDULED_DEPARTURE",
+                          "DEPARTURE_TIME", "DEPARTURE_DELAY","TAXI_OUT", 
+                          "WHEELS_OFF", "SCHEDULED_TIME", "ELAPSED_TIME", 
+                          "AIR_TIME", "DISTANCE", "WHEELS_ON",
+                          "TAXI_IN", "SCHEDULED_ARRIVAL", "ARRIVAL_TIME", "ARRIVAL_DELAY", 
+                          "DIVERTED", "CANCELLED", "CANCELLATION_REASON", 
+                          "AIR_SYSTEM_DELAY", "SECURITY_DELAY", "AIRLINE_DELAY",
+                          "LATE_AIRCRAFT_DELAY", "WEATHER_DELAY")])
+
+summary(flightsClean)
+
