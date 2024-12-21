@@ -1,0 +1,83 @@
+ggplot(flightsClean, aes(x=DEPARTURE_DELAY, y=ARRIVAL_DELAY, fill=AIRLINE)) + 
+  geom_point() + facet_wrap(~AIRLINE) + 
+  ggtitle("Departure Delays vs. Arrival Delays Across Airlines") + 
+  theme(plot.title = element_text(hjust = 0.5))
+
+#DayofWeek table 
+DayOfWeekTable <-
+  flightsClean %>%
+  group_by(AIRLINE, DAY_OF_WEEK) %>%
+  summarize(meanDepartDelays = mean(DEPARTURE_DELAY))
+
+#Mean Departure delay (Y) vs. Airline (X) facet_wrap Day of Week
+ggplot(DayOfWeekTable, aes(x=AIRLINE,y=meanDepartDelays, fill=AIRLINE), color = "black") + 
+  geom_col() + facet_wrap(~DAY_OF_WEEK) + 
+  ggtitle("Comparison Between Airlines on Average Departure \n Delay 
+          Time Across Days of the Week") + 
+  xlab("Airline") + ylab("Average Departure Delay Time (min)") + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.text.x = element_text(angle=90, hjust=1))
+
+#Month Table 
+MonthTable <-
+  flightsClean %>%
+  group_by(AIRLINE, MONTH) %>%
+  summarize(meanDepartDelays = mean(DEPARTURE_DELAY))
+
+#Mean Departure delay (Y) vs. Airline (X) facet_wrap Month
+ggplot(MonthTable, aes(x=AIRLINE,y=meanDepartDelays, fill=AIRLINE), color = "black") + 
+  geom_col() + facet_wrap(~MONTH) + 
+  ggtitle("Comparison Between Airlines on Average Departure \n Delay Time Across Months") + 
+  xlab("Airline") + ylab("Average Departure Delay Time (min)") + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.text.x = element_text(angle=90, hjust=1, size=5))
+
+#New column for difference between scheduled and elapsed
+flightsClean$difference = flightsClean$SCHEDULED_TIME-flightsClean$ELAPSED_TIME
+
+#Table for airlines vs average difference between scheduled and elapsed
+  meandifftable = 
+  flightsClean %>%
+  group_by(AIRLINE) %>%
+  summarize(meandifference = mean(difference))
+  
+#Graph for meandifftable
+  ggplot(meandifftable, aes(x = AIRLINE, y = meandifference, fill = AIRLINE),
+    colour = "black") +
+    geom_col()+
+    xlab("Airlines")+ylab("Mean Difference Between Scheduled \n and Elapsed Time (min)")+
+    ggtitle('Average Difference between Elapsed \n and Scheduled Time by Airline')+
+    theme(plot.title = element_text(hjust = 0.5))
+
+#Removing October due to missing data in Airports
+flightsClean10 = flightsClean[!(flightsClean$MONTH=="10"),]
+ 
+#Month Table 2
+MonthTable2 <-
+  flightsClean %>%
+  filter(ORIGIN_AIRPORT=="ATL" |ORIGIN_AIRPORT=="ORD" | ORIGIN_AIRPORT=="DFW" |
+           ORIGIN_AIRPORT=="DEN" | ORIGIN_AIRPORT=="LAX" | ORIGIN_AIRPORT=="PHX" |
+           ORIGIN_AIRPORT=="SFO" |ORIGIN_AIRPORT=="IAH" |ORIGIN_AIRPORT=="LAS" |
+           ORIGIN_AIRPORT== "MSP" | ORIGIN_AIRPORT=="SEA" | ORIGIN_AIRPORT=="MCO" |
+           ORIGIN_AIRPORT=="DTW" | ORIGIN_AIRPORT=="BOS" | ORIGIN_AIRPORT=="CLT")%>%
+  group_by(ORIGIN_AIRPORT, MONTH) %>%
+  summarize(meanDepartDelays = mean(DEPARTURE_DELAY))
+
+
+#Mean Departure delay (Y) vs. Airport (X) facet_wrap Month
+ggplot(MonthTable2, aes(x=ORIGIN_AIRPORT,y=meanDepartDelays, fill=ORIGIN_AIRPORT), color = "black") + 
+  geom_col() + facet_wrap(~MONTH) + 
+  ggtitle("Comparison Between Airports on Average Departure \n Delay Time Across Months") + 
+  xlab("Airport") + ylab("Average Departure Delay Time (min)") + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.text.x = element_text(angle=90, hjust=1, size=5))
+
+#Mean Departure delay (Y) vs. Month (X) facet_wrap Airport
+ggplot(MonthTable2, aes(x=MONTH,y=meanDepartDelays, fill=MONTH), color = "black") + 
+  geom_col() + facet_wrap(~ORIGIN_AIRPORT) + 
+  ggtitle("Comparison Between Months on Average Departure \n Delay Time Across Airports") + 
+  xlab("Months") + ylab("Average Departure Delay Time (min)") + 
+  theme(plot.title = element_text(hjust = 0.5), 
+        axis.text.x = element_text(angle=90, hjust=1, size=5))
+
+
